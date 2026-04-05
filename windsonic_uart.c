@@ -148,10 +148,9 @@ esp_err_t wind_process_samples(float * speed, float * bearing, float *sd, u_int1
             u += u_buffer[ix];
             v += v_buffer[ix];
         }
-        u /= use_n;
+        u /= use_n;  // scale to mean
         v /= use_n;
         *speed = sqrt(u*u + v*v);
-        // TODO check bearing (esp)
         // bearing positive U is towards the North, positive V is towards the West. Towards S is bearing =0, toward W = 90, toward N =180, toward E =270
         if (v > 0) {  // bearings from 0 to 180
             *bearing = acos(-u / *speed) * 57.30;  // factor converts from radian to degree
@@ -160,14 +159,14 @@ esp_err_t wind_process_samples(float * speed, float * bearing, float *sd, u_int1
         }
         // SD only if at least 3 samples
         if (use_n >= 3) {
-            u = 0;  // re-use to accumulate the squared deviations
-            v = 0;
+            float u_sq = 0;
+            float v_sq = 0;
             for (uint16_t i = 1; i <= use_n ; i++){
                 ix = ((uint16_t)(buffer_ix - i)) % CONFIG_WINDSONIC_BUFF_LEN;
-                u += pow(*speed - u_buffer[ix], 2);
-                u += pow(*speed - u_buffer[ix], 2);
+                u_sq += pow(u - u_buffer[ix], 2);
+                v_sq += pow(v - v_buffer[ix], 2);
             }
-            *sd = sqrt(u / use_n + v / use_n);  // root of sum of cartesian variances
+            *sd = sqrt(u_sq / use_n + v_sq / use_n);  // root of sum of cartesian variances
         }
 
         ESP_LOGD(TAG, "Mean Speed: %.3fm/s @ bearing %.1f, SD: %.3fm/s", *speed, *bearing, *sd);
