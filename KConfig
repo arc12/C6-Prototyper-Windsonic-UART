@@ -1,0 +1,14 @@
+menu "Windsonic"
+    config WINDSONIC_LOG_LEVEL
+        int "Log level (1=ERR, 2=WARN, 3=INFO, 4=DEBUG). Limited by global LOG_MAXIMUM_LEVEL."
+        default 3
+        range 1 4
+    config WINDSONIC_BUFF_LEN
+        int "Number of slots in ring buffers"
+        default 32
+        range 5 64
+    config WINDSONIC_BAUD
+        int "Baud rate for Windsonic"
+        default 9600
+
+endmenu
