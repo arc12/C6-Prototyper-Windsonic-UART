@@ -80,9 +80,9 @@ esp_err_t wind_take_reading(){
     if (len_tx == 2){
         // Read data from the UART - typical interval for completion of poll is 120-130ms
         int len_rx = uart_read_bytes(LP_UART_NUM_0, uart_buffer, 27, 1500 / portTICK_PERIOD_MS);
-        ESP_LOGD(TAG, "Received (STX & ETX hidden): %s", (char*)(uart_buffer+1));  // start after 0x02 = STX. The ETX is lost from stdout so this shows the checksum chars
+        uart_buffer[len_rx] = '\0';
+        if (len_rx > 0) ESP_LOGD(TAG, "Received (STX & ETX hidden): %s", (char*)(uart_buffer+1));  // start after 0x02 = STX. The ETX is lost from stdout so this shows the checksum chars
         if (len_rx == 27) {
-            uart_buffer[len_rx] = '\0';
             // compute checksum - exclusive OR of bytes between STX and ETX. Source checksum is 2 chars after ETX, being the ascii encoding of a hex value !!
             uint8_t chk_source;
             sscanf((char*)(uart_buffer + 25), "%hhX", &chk_source);
