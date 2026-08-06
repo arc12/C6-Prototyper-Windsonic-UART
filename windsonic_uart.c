@@ -126,17 +126,17 @@ esp_err_t wind_take_reading(){
 // Read un-used and take mean/sd.
 // min_samples sets minimum for a valid measurement. max_samples would normally be the expected number of readings taken but may be smaller if bursts just before the logging event are wanted
 // In the event that there are not enough un-read entries in the buffer, or if any are invalid the returned mean value will be set to the "NA" placeholder: FLOAT_NA
-esp_err_t wind_process_samples(float * speed, float * bearing, float *sd, u_int16_t min_samples, u_int16_t max_samples){
+esp_err_t wind_process_samples(float * speed, float * direction, float *sd, u_int16_t min_samples, u_int16_t max_samples){
     
     esp_err_t err = ESP_OK;
 
     // failure case fallbacks only over-written if all OK
     *speed = FLOAT_NA;
-    *bearing = FLOAT_NA;
+    *direction = FLOAT_NA;
     *sd = FLOAT_NA;
 
     if (buffer_valid >= min_samples){
-        ESP_LOGD(TAG, "Computing speed/bearing/sd (buffer_ix = %lu, buffer_valid = %lu)", buffer_ix, buffer_valid);
+        ESP_LOGD(TAG, "Computing speed/direction/sd (buffer_ix = %lu, buffer_valid = %lu)", buffer_ix, buffer_valid);
         // compute the mean cartesian vector from the series of U,V speeds then render this to polar form
         uint16_t use_n = MIN(max_samples, buffer_valid);
         float u = 0;
@@ -151,11 +151,11 @@ esp_err_t wind_process_samples(float * speed, float * bearing, float *sd, u_int1
         u /= use_n;  // scale to mean
         v /= use_n;
         *speed = sqrt(u*u + v*v);
-        // bearing positive U is towards the North, positive V is towards the West. Towards S is bearing =0, toward W = 90, toward N =180, toward E =270
-        if (v > 0) {  // bearings from 0 to 180
-            *bearing = acos(-u / *speed) * 57.30;  // factor converts from radian to degree
+        // direction positive U is towards the North, positive V is towards the West. Towards S is direction =0, toward W = 90, toward N =180, toward E =270
+        if (v > 0) {  // directions from 0 to 180
+            *direction = acos(-u / *speed) * 57.30;  // factor converts from radian to degree
         } else {
-            *bearing = 180 + acos(u / *speed) * 57.30;
+            *direction = 180 + acos(u / *speed) * 57.30;
         }
         // SD only if at least 3 samples
         if (use_n >= 3) {
@@ -169,11 +169,11 @@ esp_err_t wind_process_samples(float * speed, float * bearing, float *sd, u_int1
             *sd = sqrt(u_sq / use_n + v_sq / use_n);  // root of sum of cartesian variances
         }
 
-        ESP_LOGD(TAG, "Mean Speed: %.3fm/s @ bearing %.1f, SD: %.3fm/s", *speed, *bearing, *sd);
+        ESP_LOGD(TAG, "Mean Speed: %.3fm/s @ direction %.1f, SD: %.3fm/s", *speed, *direction, *sd);
 
 
     } else {
-        ESP_LOGW(TAG, "Insufficient samples to compute mean speed and bearing. Had %u, needed %u", buffer_valid, min_samples);
+        ESP_LOGW(TAG, "Insufficient samples to compute mean speed and direction. Had %u, needed %u", buffer_valid, min_samples);
         err = ESP_ERR_INVALID_SIZE;
     }
 

@@ -3,7 +3,7 @@ _Refer to the Windsonic User Manual from Gill Instruments; the equipment in Pool
 
 This logger uses the RS232 UART interface, whereas the original Logbox AA used analogue outputs. It also uses the "polled" approach, where measurements are requested rather than transmitted at intervals.
 
-In order to compute means over a series of readings, the Windsonic is also re-configured to return cartesian ("UV") speeds. A vector sum is computed and divided down to give mean speed and bearing.
+In order to compute means over a series of readings, the Windsonic is also re-configured to return cartesian ("UV") speeds. A vector sum is computed and divided down to give mean speed and wind direction (where it is coming from).
 
 There are no configuration settings which can be changed using the logger web interface.
 
